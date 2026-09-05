@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, text
 # DATABASE CONFIGURATION
 # =============================================================================
 DB_USER = "postgres"
-DB_PASSWORD = "D@30&D@22"
+DB_PASSWORD = "D@30&D@22" 
 DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "agri_db"
@@ -121,6 +121,13 @@ class CropPriceForecaster:
 if __name__ == "__main__":
   forecaster = CropPriceForecaster()
   output = forecaster.generate_forecast("Potato")
+  import json
+
+  print(json.dumps(output, indent=2))
+if __name__ == "__main__":
+  forecaster = CropPriceForecaster()
+  output = forecaster.generate_forecast("Rice")
+
   import json
 
   print(json.dumps(output, indent=2))
