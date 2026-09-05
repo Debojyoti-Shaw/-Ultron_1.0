@@ -1,0 +1,137 @@
+-- 1. Create Farmer Lots Table
+CREATE TABLE IF NOT EXISTS farmer_lots (
+    lot_id VARCHAR(50) PRIMARY KEY,
+    farmer_name VARCHAR(100) NOT NULL,
+    location VARCHAR(100) NOT NULL,
+    lat DOUBLE PRECISION NOT NULL,
+    lon DOUBLE PRECISION NOT NULL,
+    crop VARCHAR(50) NOT NULL,
+    quantity_tonnes DOUBLE PRECISION NOT NULL,
+    grade VARCHAR(10) NOT NULL,
+    expected_price DOUBLE PRECISION NOT NULL
+);
+
+-- 2. Create Buyer Demands Table
+CREATE TABLE IF NOT EXISTS buyer_demands (
+    buyer_id VARCHAR(50) PRIMARY KEY,
+    buyer_type VARCHAR(100) NOT NULL,
+    location VARCHAR(100) NOT NULL,
+    lat DOUBLE PRECISION NOT NULL,
+    lon DOUBLE PRECISION NOT NULL,
+    req_crop VARCHAR(50) NOT NULL,
+    req_quantity DOUBLE PRECISION NOT NULL,
+    req_grade VARCHAR(10) NOT NULL,
+    offered_price DOUBLE PRECISION NOT NULL,
+    trust_score DOUBLE PRECISION NOT NULL
+);
+
+-- 3. Insert Sample Data
+INSERT INTO farmer_lots (lot_id, farmer_name, location, lat, lon, crop, quantity_tonnes, grade, expected_price)
+VALUES 
+    ('WB-POT-001', 'Ramesh Roy', 'Hooghly, WB', 22.8963, 88.2461, 'Potato', 12.5, 'A', 1500.0),
+    ('WB-POT-002', 'Subhash Ghosh', 'Burdwan, WB', 23.2324, 87.8615, 'Potato', 20.0, 'B', 1400.0),
+	('WB-RIC-006', 'Rishi Samanta', 'Menidinipur, WB', 22.4211, 87.3226, 'Rice', 10.5, 'A', 1600.0)
+
+ON CONFLICT (lot_id) DO NOTHING;
+
+INSERT INTO buyer_demands (buyer_id, buyer_type, location, lat, lon, req_crop, req_quantity, req_grade, offered_price, trust_score)
+VALUES 
+    ('BUY-IND-01', 'FMCG Processor', 'Kolkata, WB', 22.5726, 88.3639, 'Potato', 15.0, 'A', 1650.0, 94.0),
+    ('BUY-WHO-02', 'Wholesaler', 'Burdwan, WB', 23.2324, 87.8615, 'Potato', 10.0, 'A', 1520.0, 88.0),
+    ('BUY-RET-03', 'Retail Chain', 'Siliguri, WB', 26.7271, 88.3953, 'Rice', 10.0, 'A', 1750.0, 75.0),
+	('BUY-RET-05', 'Retail Chain', 'Siliguri, WB', 26.7271, 88.3953, 'Rice', 11.5, 'A', 1750.0, 75.0)
+-- Create the Agmarknet Mandi Prices Table
+CREATE TABLE IF NOT EXISTS agmarknet_mandi_prices (
+    id SERIAL PRIMARY KEY,
+    crop VARCHAR(50) NOT NULL,
+    mandi_name VARCHAR(100),
+    state VARCHAR(50),
+    arrival_date DATE NOT NULL,
+    modal_price DOUBLE PRECISION NOT NULL
+);
+
+-- Seed Historical Price Records for Potato
+INSERT INTO agmarknet_mandi_prices (crop, mandi_name, state, arrival_date, modal_price)
+VALUES 
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-20', 2500.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-21', 2515.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-22', 2510.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-23', 2530.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-24', 2545.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-25', 2550.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-26', 2565.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-27', 2580.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-28', 2595.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-29', 2600.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-30', 2615.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-08-31', 2620.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-09-01', 2635.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-09-02', 2630.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-09-03', 2640.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-09-04', 2645.0),
+    ('Potato', 'Hooghly Mandi', 'West Bengal', '2026-09-05', 2650.0);
+-- Seed Historical Price Records for Rice
+INSERT INTO agmarknet_mandi_prices (crop, mandi_name, state, arrival_date, modal_price)
+VALUES 
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-20', 1540.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-21', 1545.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-22', 1550.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-23', 1548.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-24', 1555.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-25', 1560.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-26', 1570.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-27', 1565.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-28', 1575.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-29', 1580.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-30', 1590.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-08-31', 1595.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-09-01', 1600.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-09-02', 1605.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-09-03', 1610.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-09-04', 1615.0),
+    ('Rice', 'Burdwan Mandi', 'West Bengal', '2026-09-05', 1620.0);
+-- Remove duplicate rows based on crop and arrival_date
+DELETE FROM agmarknet_mandi_prices a
+USING agmarknet_mandi_prices b
+WHERE a.id < b.id 
+  AND a.crop = b.crop 
+  AND a.arrival_date = b.arrival_date;
+ALTER TABLE agmarknet_mandi_prices 
+ADD CONSTRAINT unique_crop_date UNIQUE (crop, arrival_date);-- 1. Create Mandi Locations & Market Intelligence Table
+CREATE TABLE IF NOT EXISTS mandi_markets (
+    mandi_id SERIAL PRIMARY KEY,
+    mandi_name VARCHAR(100) NOT NULL,
+    location VARCHAR(100) NOT NULL,
+    state VARCHAR(50) NOT NULL,
+    lat DOUBLE PRECISION NOT NULL,
+    lon DOUBLE PRECISION NOT NULL
+);
+
+-- 2. Insert Sample Mandis matching your UI
+INSERT INTO mandi_markets (mandi_name, location, state, lat, lon)
+VALUES 
+    ('Burdwan Mandi', 'Burdwan, West Bengal', 'West Bengal', 23.2324, 87.8615),
+    ('Howrah Market', 'Howrah, West Bengal', 'West Bengal', 22.5958, 88.2636),
+    ('Hooghly Mandi', 'Hooghly, West Bengal', 'West Bengal', 22.8963, 88.2461),
+    ('Nadia Market', 'Nadia, West Bengal', 'West Bengal', 23.4710, 88.5565),
+    ('Patna Mandi', 'Patna, Bihar', 'Bihar', 25.5941, 85.1376)
+ON CONFLICT DO NOTHING;
+-- Seed Varied Potato Prices across all Mandis
+INSERT INTO agmarknet_mandi_prices (crop, mandi_name, state, arrival_date, modal_price)
+VALUES 
+    ('Potato', 'Burdwan Mandi', 'West Bengal', '2026-09-05', 2650.0),
+    ('Potato', 'Howrah Market', 'West Bengal', '2026-09-05', 2580.0),
+    ('Potato', 'Nadia Market', 'West Bengal', '2026-09-05', 2550.0),
+    ('Potato', 'Patna Mandi', 'Bihar', '2026-09-05', 2450.0)
+ON CONFLICT DO NOTHING;
+
+-- Seed Varied Rice Prices across all Mandis
+INSERT INTO agmarknet_mandi_prices (crop, mandi_name, state, arrival_date, modal_price)
+VALUES 
+    ('Rice', 'Hooghly Mandi', 'West Bengal', '2026-09-05', 1600.0),
+    ('Rice', 'Howrah Market', 'West Bengal', '2026-09-05', 1640.0),
+    ('Rice', 'Nadia Market', 'West Bengal', '2026-09-05', 1580.0),
+    ('Rice', 'Patna Mandi', 'Bihar', '2026-09-05', 1520.0)
+ON CONFLICT DO NOTHING;
+
+ON CONFLICT (buyer_id) DO NOTHING;
