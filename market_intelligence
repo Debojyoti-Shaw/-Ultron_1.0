@@ -1,0 +1,128 @@
+import math
+from typing import Dict, List, Optional
+from urllib.parse import quote_plus
+from sqlalchemy import create_engine, text
+
+# Database Connection
+DB_USER = "postgres"
+DB_PASSWORD = "D@30&D@22" 
+DB_HOST = "localhost"
+DB_PORT = "5432"
+DB_NAME = "agri_db"
+
+encoded_password = quote_plus(DB_PASSWORD)
+DATABASE_URL = (
+    f"postgresql://{DB_USER}:{encoded_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+)
+engine = create_engine(DATABASE_URL)
+
+
+def calculate_haversine_distance(
+    lat1: float, lon1: float, lat2: float, lon2: float
+) -> float:
+  """Calculates straight-line distance in kilometers between two coordinates."""
+  R = 6371.0  # Earth radius in km
+  dlat = math.radians(lat2 - lat1)
+  dlon = math.radians(lon2 - lon1)
+  a = (
+      math.sin(dlat / 2) ** 2
+      + math.cos(math.radians(lat1))
+      * math.cos(math.radians(lat2))
+      * math.sin(dlon / 2) ** 2
+  )
+  c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+  return round(R * c, 1)
+
+
+def get_market_intelligence(
+    crop: str = 'Potato',
+    farmer_lat: float = 22.8963,
+    farmer_lon: float = 88.2461,  # Default: Hooghly
+    state_filter: Optional[str] = None,
+    search_query: Optional[str] = None,
+) -> List[Dict]:
+
+  query = text("""
+        SELECT 
+            m.mandi_name,
+            m.location,
+            m.state,
+            m.lat,
+            m.lon,
+            COALESCE(p.modal_price, 2500) as current_price,
+            COALESCE(p.prev_price, 2500) as prev_price,
+            COALESCE(p.arrival_tonnes, 1000) as arrival_tonnes
+        FROM mandi_markets m
+        LEFT JOIN (
+            SELECT 
+                mandi_name,
+                modal_price,
+                LAG(modal_price) OVER (PARTITION BY mandi_name ORDER BY arrival_date ASC) as prev_price,
+                1000 as arrival_tonnes,
+                ROW_NUMBER() OVER (PARTITION BY mandi_name ORDER BY arrival_date DESC) as rn
+            FROM agmarknet_mandi_prices
+            WHERE LOWER(crop) = LOWER(:crop)
+        ) p ON LOWER(m.mandi_name) = LOWER(p.mandi_name) AND p.rn = 1
+    """)
+
+  with engine.connect() as conn:
+    results = conn.execute(query, {'crop': crop}).fetchall()
+
+  market_data = []
+
+  for row in results:
+    mandi_name, location, state, lat, lon, price, prev_price, arrival_tonnes = (
+        row
+    )
+
+    # Filter checks
+    if state_filter and state_filter.lower() not in ['all states', state.lower()]:
+      continue
+    if search_query and search_query.lower() not in mandi_name.lower():
+      continue
+
+    # 1. Distance Calculation
+    distance_km = calculate_haversine_distance(
+        farmer_lat, farmer_lon, lat, lon
+    )
+
+    # 2. Transport Cost Calculation (e.g., Base ₹30 + ₹1.2 per km per quintal)
+    transport_cost = round(30 + (distance_km * 1.2), 0)
+
+    # 3. Net Realization = Market Price - Transport Cost
+    net_realization = round(price - transport_cost, 0)
+
+    # 4. Trend Determination
+    if price > prev_price:
+      trend = 'Rising'
+    elif price < prev_price:
+      trend = 'Falling'
+    else:
+      trend = 'Stable'
+
+    market_data.append({
+        'market': mandi_name,
+        'location': location,
+        'price': float(price),
+        'distance_km': distance_km,
+        'arrival_tonnes': f'{int(arrival_tonnes)}T',
+        'trend': trend,
+        'transport_cost': float(transport_cost),
+        'net_realization': float(net_realization),
+    })
+
+  # Sort by highest Net Realization by default
+  market_data.sort(key=lambda x: x['net_realization'], reverse=True)
+  return market_data
+
+
+if __name__ == '__main__':
+  import json
+
+  data = get_market_intelligence(crop='Potato')
+  print(json.dumps(data, indent=2))
+if __name__ == '__main__':
+  import json
+
+  data = get_market_intelligence(crop='Rice')
+  print(json.dumps(data, indent=2))
